@@ -6,6 +6,9 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   CLIENT_ORIGIN: z.string().url().default('http://localhost:5173'),
+  SUPABASE_URL: z.string().url('SUPABASE_URL must be a valid URL'),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
+  SUPABASE_STORAGE_BUCKET: z.string().min(1).default('listing-photos'),
 })
 
 const parsed = envSchema.safeParse(process.env)

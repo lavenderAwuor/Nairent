@@ -41,7 +41,7 @@ export default function ListerInvitation() {
         <div className="flex items-center gap-2">
           <Info size={16} className="shrink-0 text-brand-muted" />
           <p className="flex-1 text-xs leading-relaxed text-brand-muted">
-            Create an account → Open your dashboard → Submit a listing for review.
+            Sign in → Open your dashboard → Publish a listing.
           </p>
         </div>
       </div>

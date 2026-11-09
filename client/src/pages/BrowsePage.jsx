@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { BedDouble, CalendarDays, ChevronLeft, ChevronRight, Mail, MapPin, Search, X } from 'lucide-react'
+import { BedDouble, CalendarDays, ChevronLeft, ChevronRight, Mail, MapPin, Phone, Search, X } from 'lucide-react'
 import { requestAppointment, reserveListing, searchListings, listLocations } from '../lib/api.js'
 import fallbackPropertyImage from '../assets/landing/property-photograph-1.png'
+import Navbar from '../components/landing/Navbar.jsx'
 
 const bedrooms = ['Any bedrooms', '1', '2', '3']
 const budgets = [
@@ -137,8 +138,8 @@ function ListingDetails({ listing, onClose, onBook, onReserve }) {
           <span className="absolute bottom-4 left-4 rounded-full bg-ink/70 px-3 py-1 text-xs text-white">{index + 1} / {photos.length} photos</span>
         </div>
         <div className="grid gap-8 p-6 md:grid-cols-[1fr_300px] md:p-9">
-          <div><p className="text-xl font-semibold text-ink">KSh {Number(listing.monthly_rent).toLocaleString()} <span className="text-xs font-normal text-ink-muted">/ month</span></p><h2 id="listing-title" className="mt-2 text-2xl font-semibold text-ink">{listing.title}</h2><p className="mt-2 flex items-center gap-2 text-sm text-ink-muted"><MapPin size={16} className="text-brand" />{listing.location_name}</p><div className="mt-6 flex gap-5 text-sm text-ink-muted"><span><BedDouble size={16} className="mr-1 inline text-brand" />{listing.bedrooms === 0 ? 'Studio' : `${listing.bedrooms} bedrooms`}</span><span className="font-semibold text-brand">Free viewing</span></div><p className="mt-6 text-sm leading-relaxed text-ink-muted">{listing.description}</p><div className="mt-8 flex flex-wrap gap-3"><button type="button" onClick={() => onBook(listing)} className="flex h-12 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-white"><CalendarDays size={17} />Schedule viewing</button><button type="button" onClick={() => onReserve(listing)} className="h-12 rounded-lg border border-brand px-5 text-sm font-semibold text-brand">Reserve house</button></div></div>
-          <aside className="rounded-xl bg-brand-tint p-5"><p className="text-[11px] font-semibold text-brand">LISTER CONTACT</p><h3 className="mt-3 font-semibold text-ink">{listing.lister_name || 'Property lister'}</h3><a href={`mailto:${listing.lister_email}`} className="mt-3 flex items-center gap-2 text-sm text-brand"><Mail size={16} />{listing.lister_email || 'Contact by email'}</a><p className="mt-5 text-xs leading-relaxed text-ink-muted">Ask about availability, deposits and tenancy terms directly. Never send money before viewing and verifying the property.</p></aside>
+          <div><p className="text-xl font-semibold text-ink">KSh {Number(listing.monthly_rent).toLocaleString()} <span className="text-xs font-normal text-ink-muted">/ month</span></p><h2 id="listing-title" className="mt-2 text-2xl font-semibold text-ink">{listing.title}</h2><p className="mt-2 flex items-center gap-2 text-sm text-ink-muted"><MapPin size={16} className="text-brand" />{listing.location_name}</p><div className="mt-6 flex gap-5 text-sm text-ink-muted"><span><BedDouble size={16} className="mr-1 inline text-brand" />{listing.bedrooms === 0 ? 'Studio' : `${listing.bedrooms} bedrooms`}</span><span className="font-semibold text-brand">Free viewing</span></div><p className="mt-6 text-sm leading-relaxed text-ink-muted">{listing.description}</p>{listing.amenities?.length > 0 && <div className="mt-6"><h3 className="text-sm font-semibold text-ink">Amenities</h3><div className="mt-3 flex flex-wrap gap-2">{listing.amenities.map((amenity) => <span key={amenity} className="rounded-full bg-brand-tint px-3 py-1.5 text-xs text-brand">{amenity}</span>)}</div></div>}<div className="mt-8 flex flex-wrap gap-3"><button type="button" onClick={() => onBook(listing)} className="flex h-12 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-white"><CalendarDays size={17} />Schedule viewing</button><button type="button" onClick={() => onReserve(listing)} className="h-12 rounded-lg border border-brand px-5 text-sm font-semibold text-brand">Reserve house</button></div></div>
+          <aside className="rounded-xl bg-brand-tint p-5"><p className="text-[11px] font-semibold text-brand">LISTER CONTACT</p><h3 className="mt-3 font-semibold text-ink">{listing.lister_name || 'Property lister'}</h3>{listing.lister_phone && <a href={`tel:${listing.lister_phone}`} className="mt-3 flex items-center gap-2 text-sm font-semibold text-brand"><Phone size={16} />Call {listing.lister_phone}</a>}<a href={`mailto:${listing.lister_email}`} className="mt-3 flex items-center gap-2 text-sm text-brand"><Mail size={16} />{listing.lister_email || 'Contact by email'}</a><p className="mt-5 text-xs leading-relaxed text-ink-muted">Ask about availability, deposits and tenancy terms directly. Never send money before viewing and verifying the property.</p></aside>
         </div>
       </div>
     </div>
@@ -203,6 +204,7 @@ export default function BrowsePage() {
   async function loadListings(nextFilters = filters) {
     setLoading(true)
     setError('')
+    window.sessionStorage.setItem('nairent_search_filters', JSON.stringify(nextFilters))
     try {
       const result = await searchListings(nextFilters)
       setListings(result.listings)
@@ -235,10 +237,11 @@ export default function BrowsePage() {
   }, [])
 
   return (
-    <main className="min-h-screen bg-page px-5 py-8 md:px-14 md:py-12">
+    <>
+      <Navbar />
+      <main className="min-h-screen bg-page px-5 py-8 md:px-14 md:py-12">
       <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-8">
         <div className="flex flex-col gap-3">
-          <a href="#top" className="text-sm font-medium text-brand">← Back to Nairent</a>
           <p className="text-[11px] font-semibold tracking-wide text-brand">RENTALS IN NAIROBI</p>
           <h1 className="text-[34px] font-semibold text-ink md:text-[44px]">Find a home that fits.</h1>
           <p className="max-w-[600px] text-sm leading-relaxed text-ink-muted">Search available homes, compare rent and location, then request a free viewing time directly with the lister.</p>
@@ -271,9 +274,10 @@ export default function BrowsePage() {
         {!loading && !error && listings.length === 0 && <div className="rounded-xl border border-border bg-surface p-8 text-center"><p className="font-semibold text-ink">No homes match this search yet.</p><p className="mt-2 text-sm text-ink-muted">Try another neighborhood or budget. We’ll add nearby recommendations next.</p></div>}
         {!loading && !error && listings.length > 0 && <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">{listings.map((listing) => <ListingCard key={listing.id} listing={listing} onSelect={setSelectedListing} />)}</div>}
       </div>
+      </main>
       {selectedListing && <ListingDetails listing={selectedListing} onClose={() => setSelectedListing(null)} onBook={(listing) => { setSelectedListing(null); setAppointmentListing(listing) }} onReserve={(listing) => { setSelectedListing(null); setReservationListing(listing) }} />}
       {appointmentListing && <AppointmentDialog listing={appointmentListing} onClose={() => setAppointmentListing(null)} />}
       {reservationListing && <ReservationDialog listing={reservationListing} onClose={() => setReservationListing(null)} />}
-    </main>
+    </>
   )
 }

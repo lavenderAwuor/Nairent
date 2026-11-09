@@ -12,6 +12,7 @@ const credentialsSchema = z.object({
 
 const registrationSchema = credentialsSchema.extend({
   fullName: z.string().trim().min(2).max(120),
+  phone: z.string().trim().min(7).max(32),
   role: z.enum(['tenant', 'lister']).default('tenant'),
 })
 

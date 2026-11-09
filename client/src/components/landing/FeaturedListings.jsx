@@ -43,6 +43,12 @@ function ListingCard({ listing }) {
           </p>
           <p className="text-[11px] text-ink-muted">{listing.availability}</p>
         </div>
+        <a
+          href="#browse"
+          className="mt-1 flex h-10 items-center justify-center rounded-lg bg-brand text-xs font-semibold text-white hover:bg-[#123a2d]"
+        >
+          View property
+        </a>
       </div>
     </article>
   )

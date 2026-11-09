@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { requireAuth } from '../middleware/requireAuth.js'
 import { requireRole } from '../middleware/requireRole.js'
+import { optionalAuth } from '../middleware/optionalAuth.js'
 import { createAppointment, getAppointmentsForTenant } from '../services/appointmentService.js'
 
 const router = Router()
@@ -14,10 +15,10 @@ const appointmentSchema = z.object({
   note: z.string().trim().max(500).optional(),
 })
 
-router.post('/', async (request, response, next) => {
+router.post('/', optionalAuth, async (request, response, next) => {
   try {
     const input = appointmentSchema.parse(request.body)
-    const appointment = await createAppointment(input)
+    const appointment = await createAppointment({ ...input, tenantId: request.user?.sub })
     if (!appointment) {
       return response.status(409).json({ error: 'This listing is not currently accepting viewing requests' })
     }

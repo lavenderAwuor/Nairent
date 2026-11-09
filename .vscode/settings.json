@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^Set-Location \\.\\\\client; npm run lint$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

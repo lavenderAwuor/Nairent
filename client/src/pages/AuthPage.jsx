@@ -1,21 +1,22 @@
 import { useState } from 'react'
-import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail, UserRound } from 'lucide-react'
+import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail, Phone, UserRound } from 'lucide-react'
 import brandMark from '../assets/landing/brand-mark.svg'
-import { login, register, saveToken } from '../lib/api.js'
+import propertyPhotograph from '../assets/landing/property-photograph-1.png'
+import { clearToken, login, register, saveToken } from '../lib/api.js'
 
 const modes = {
   login: {
     eyebrow: 'WELCOME BACK',
-    title: 'Sign in to Nairent',
-    description: 'Manage your properties, viewing requests and rental enquiries in one workspace.',
+    title: 'Welcome back',
+    description: 'Sign in to manage your properties and respond to rental enquiries.',
     submit: 'Sign in',
     switchPrompt: 'New to Nairent?',
     switchLabel: 'Create an account',
   },
   signup: {
     eyebrow: 'JOIN NAIRENT',
-    title: 'Create your account',
-    description: 'Create a professional property profile and start listing homes for Nairobi renters.',
+    title: 'Create an account',
+    description: 'Create your property profile and start listing homes for Nairobi renters.',
     submit: 'Create account',
     switchPrompt: 'Already have an account?',
     switchLabel: 'Sign in',
@@ -33,7 +34,7 @@ function Field({ label, name, type = 'text', value, onChange, icon: Icon, error,
           type={type}
           value={value}
           onChange={onChange}
-          className={`h-12 w-full rounded-lg border bg-white pl-11 pr-11 text-sm text-ink outline-none transition placeholder:text-ink-muted/70 focus:border-brand focus:ring-2 focus:ring-brand/10 ${
+          className={`h-11 w-full rounded-lg border bg-white pl-11 pr-11 text-sm text-ink outline-none transition placeholder:text-ink-muted/70 focus:border-brand focus:ring-2 focus:ring-brand/10 ${
             error ? 'border-red-400' : 'border-border'
           }`}
           aria-invalid={Boolean(error)}
@@ -54,7 +55,7 @@ function Field({ label, name, type = 'text', value, onChange, icon: Icon, error,
 export default function AuthPage({ initialMode = 'login' }) {
   const [mode, setMode] = useState(initialMode)
   const [showPassword, setShowPassword] = useState(false)
-  const [form, setForm] = useState({ name: '', email: '', password: '' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' })
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
   const [requestError, setRequestError] = useState('')
@@ -81,6 +82,7 @@ export default function AuthPage({ initialMode = 'login' }) {
     const nextErrors = {}
 
     if (mode === 'signup' && !form.name.trim()) nextErrors.name = 'Enter your full name.'
+    if (mode === 'signup' && !form.phone.trim()) nextErrors.phone = 'Enter a phone number so renters can call you.'
     if (!form.email.trim()) nextErrors.email = 'Enter your email address.'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) nextErrors.email = 'Enter a valid email address.'
     if (!form.password) nextErrors.password = 'Enter your password.'
@@ -94,12 +96,13 @@ export default function AuthPage({ initialMode = 'login' }) {
     try {
       const result = mode === 'login'
         ? await login({ email: form.email, password: form.password })
-        : await register({ fullName: form.name, email: form.email, password: form.password, role: 'lister' })
-      saveToken(result.token)
-      setSubmitted(true)
+        : await register({ fullName: form.name, email: form.email, phone: form.phone, password: form.password, role: 'lister' })
       if (result.user.role !== 'lister') {
+        clearToken()
         throw new Error('This workspace is for landlords, agents and property owners.')
       }
+      saveToken(result.token)
+      setSubmitted(true)
       window.location.hash = '#dashboard'
     } catch (error) {
       setRequestError(error.message)
@@ -109,16 +112,18 @@ export default function AuthPage({ initialMode = 'login' }) {
   }
 
   return (
-    <main className="flex min-h-screen w-full items-center justify-center bg-page px-5 py-8 md:px-8">
-      <div className="grid w-full max-w-[1060px] overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_20px_60px_rgba(24,75,58,0.08)] md:grid-cols-[0.9fr_1.1fr]">
-        <section className="hidden flex-col justify-between bg-brand p-10 text-white md:flex lg:p-14">
-          <div className="flex items-center gap-2.5">
+    <main className="flex min-h-screen w-full items-center justify-center bg-page px-3 py-4 sm:px-6 sm:py-6">
+      <div className="grid w-full max-w-[920px] overflow-hidden rounded-[18px] border border-border bg-surface shadow-[0_18px_50px_rgba(24,75,58,0.08)] sm:min-h-[620px] sm:grid-cols-[0.86fr_1.14fr]">
+        <section className="relative hidden min-h-[220px] flex-col justify-between overflow-hidden bg-brand p-8 text-white sm:flex lg:p-10">
+          <img src={propertyPhotograph} alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" />
+          <div className="absolute inset-0 bg-gradient-to-b from-brand/90 via-brand/60 to-brand" />
+          <div className="relative flex items-center gap-2.5">
             <img src={brandMark} alt="" className="size-9 brightness-0 invert" />
             <p className="text-2xl font-bold">nairent<span className="text-brand-muted">.</span></p>
           </div>
-          <div className="flex flex-col gap-5">
+          <div className="relative flex flex-col gap-5">
             <p className="text-[11px] font-semibold tracking-wide text-brand-muted">NAIROBI. YOUR NEXT CHAPTER.</p>
-            <h1 className="text-[38px] font-semibold leading-[1.12] lg:text-[46px]">
+            <h1 className="text-[34px] font-semibold leading-[1.12] lg:text-[40px]">
               A clearer way
               <br />
               to find home.
@@ -127,11 +132,11 @@ export default function AuthPage({ initialMode = 'login' }) {
               List your properties, manage viewings, and respond to serious enquiries.
             </p>
           </div>
-          <p className="text-xs text-brand-muted">Find a home. Know where you stand.</p>
+          <p className="relative text-xs text-brand-muted">Find a home. Know where you stand.</p>
         </section>
 
-        <section className="flex flex-col p-6 sm:p-10 lg:p-14">
-          <div className="mb-8 flex items-center justify-between">
+        <section className="flex min-w-0 flex-col p-5 sm:p-9 lg:p-11">
+          <div className="mb-6 flex items-center justify-between">
             <a href="#top" className="flex items-center gap-2 text-sm font-medium text-ink-muted hover:text-brand">
               <ArrowLeft size={17} />
               Back to Nairent
@@ -143,36 +148,15 @@ export default function AuthPage({ initialMode = 'login' }) {
           </div>
 
           <div className="mx-auto flex w-full max-w-[420px] flex-col">
-            <p className="mb-3 text-[11px] font-semibold tracking-wide text-brand">{copy.eyebrow}</p>
-            <h2 className="text-[30px] font-semibold leading-tight text-ink">{copy.title}</h2>
-            <p className="mt-3 text-sm leading-relaxed text-ink-muted">{copy.description}</p>
-
-            <div className="mt-8 flex rounded-lg bg-brand-tint p-1" role="tablist" aria-label="Authentication mode">
-              <button
-                type="button"
-                onClick={() => switchMode('login')}
-                className={`h-10 flex-1 rounded-md text-sm font-semibold transition ${
-                  mode === 'login' ? 'bg-white text-brand shadow-sm' : 'text-ink-muted'
-                }`}
-                role="tab"
-                aria-selected={mode === 'login'}
-              >
-                Sign in
-              </button>
-              <button
-                type="button"
-                onClick={() => switchMode('signup')}
-                className={`h-10 flex-1 rounded-md text-sm font-semibold transition ${
-                  mode === 'signup' ? 'bg-white text-brand shadow-sm' : 'text-ink-muted'
-                }`}
-                role="tab"
-                aria-selected={mode === 'signup'}
-              >
-                Sign up
-              </button>
+            <div className="mb-8 flex items-center gap-2">
+              <img src={brandMark} alt="" className="size-8" />
+              <span className="text-xl font-bold text-brand">nairent<span className="text-brand-muted">.</span></span>
             </div>
+            <p className="mb-2 text-[11px] font-semibold tracking-wide text-brand">{copy.eyebrow}</p>
+            <h2 className="text-[28px] font-semibold leading-tight text-ink">{copy.title}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-ink-muted">{copy.description}</p>
 
-            <form onSubmit={handleSubmit} className="mt-7 flex flex-col gap-5" noValidate>
+            <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4" noValidate>
               {mode === 'signup' && (
                 <Field
                   label="Full name"
@@ -183,6 +167,11 @@ export default function AuthPage({ initialMode = 'login' }) {
                   error={errors.name}
                   placeholder="Enter your full name"
                 >
+                  {null}
+                </Field>
+              )}
+              {mode === 'signup' && (
+                <Field label="Phone number" name="phone" type="tel" value={form.phone} onChange={handleChange} icon={Phone} error={errors.phone} placeholder="+254 7XX XXX XXX">
                   {null}
                 </Field>
               )}
@@ -217,7 +206,7 @@ export default function AuthPage({ initialMode = 'login' }) {
               <button
                 type="submit"
                 disabled={submitting}
-                className="mt-1 flex h-12 items-center justify-center rounded-lg bg-brand text-sm font-semibold text-white transition hover:bg-[#123a2d] focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:opacity-60"
+                className="mt-1 flex h-11 items-center justify-center rounded-lg bg-brand text-sm font-semibold text-white transition hover:bg-[#123a2d] focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:opacity-60"
               >
                 {submitting ? 'Please wait…' : copy.submit}
               </button>
@@ -227,7 +216,7 @@ export default function AuthPage({ initialMode = 'login' }) {
               </p>
             </form>
 
-            <p className="mt-5 text-center text-sm text-ink-muted">
+            <p className="mt-7 text-center text-sm text-ink-muted">
               {copy.switchPrompt}{' '}
               <button
                 type="button"

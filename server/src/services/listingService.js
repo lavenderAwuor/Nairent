@@ -30,10 +30,10 @@ export async function searchListings({ location, minRent, maxRent, bedrooms, ava
   }
 
   const result = await pool.query(
-    `SELECT l.id, l.title, l.description, l.monthly_rent, l.bedrooms,
+    `SELECT l.id, l.title, l.description, l.monthly_rent, l.bedrooms, l.amenities,
             l.availability_status, loc.id AS location_id,
             loc.name AS location_name, loc.latitude, loc.longitude,
-            u.full_name AS lister_name, u.email AS lister_email,
+            u.full_name AS lister_name, u.email AS lister_email, u.phone AS lister_phone,
             COALESCE(
               json_agg(json_build_object('id', p.id, 'imageUrl', p.image_url)
                 ORDER BY p.sort_order) FILTER (WHERE p.id IS NOT NULL),
@@ -53,10 +53,10 @@ export async function searchListings({ location, minRent, maxRent, bedrooms, ava
 
 export async function getListingById(listingId) {
   const result = await pool.query(
-    `SELECT l.id, l.title, l.description, l.monthly_rent, l.bedrooms,
+    `SELECT l.id, l.title, l.description, l.monthly_rent, l.bedrooms, l.amenities,
             l.availability_status, loc.id AS location_id,
             loc.name AS location_name, loc.latitude, loc.longitude,
-            u.full_name AS lister_name, u.email AS lister_email,
+            u.full_name AS lister_name, u.email AS lister_email, u.phone AS lister_phone,
             COALESCE(
               json_agg(json_build_object('id', p.id, 'imageUrl', p.image_url)
                 ORDER BY p.sort_order) FILTER (WHERE p.id IS NOT NULL),

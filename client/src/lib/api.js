@@ -21,6 +21,14 @@ export function saveToken(token) {
   window.localStorage.setItem('nairent_token', token)
 }
 
+export function clearToken() {
+  window.localStorage.removeItem('nairent_token')
+}
+
+export function getCurrentUser() {
+  return request('/auth/me', { headers: { Authorization: `Bearer ${getToken()}` } })
+}
+
 export function login(input) {
   return request('/auth/login', { method: 'POST', body: JSON.stringify(input) })
 }
@@ -39,6 +47,42 @@ export function createListing(input) {
     body: JSON.stringify(input),
     headers: { Authorization: `Bearer ${getToken()}` },
   })
+}
+
+export function updateListing(id, input) {
+  return request(`/lister/listings/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+    headers: { Authorization: `Bearer ${getToken()}` },
+  })
+}
+
+export function updateListingAvailability(id, availability) {
+  return request(`/lister/listings/${id}/availability`, {
+    method: 'PATCH',
+    body: JSON.stringify({ availability }),
+    headers: { Authorization: `Bearer ${getToken()}` },
+  })
+}
+
+export function deleteListing(id) {
+  return request(`/lister/listings/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${getToken()}` },
+  })
+}
+
+export async function uploadPhotos(files) {
+  const formData = new FormData()
+  files.forEach((file) => formData.append('photos', file))
+  const response = await fetch(`${API_URL}/lister/uploads`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${getToken()}` },
+    body: formData,
+  })
+  const body = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(body.error || 'Photo upload failed')
+  return body
 }
 
 export function searchListings(filters = {}) {

@@ -14,7 +14,7 @@ export default function App() {
   }, [])
 
   if (hash === '#list-a-property' || hash === '#sign-in' || hash === '#sign-up') {
-    return <AuthPage initialMode={hash === '#sign-up' || hash === '#list-a-property' ? 'signup' : 'login'} />
+    return <AuthPage initialMode={hash === '#sign-up' ? 'signup' : 'login'} />
   }
   if (hash === '#browse') return <BrowsePage />
   if (hash === '#dashboard') return <ListerDashboard />

@@ -18,6 +18,12 @@ authentication foundation required by the tenant and lister flows.
    npm run migrate
    ```
 
+   For the Supabase Management API migration mode, set `DATABASE_URL` to the
+   project's HTTPS URL and provide a short-lived, scoped `access_token` with
+   database write permission. The running API still requires a PostgreSQL
+   connection string in `DATABASE_URL`; use the Supabase Session pooler URL
+   when starting the server.
+
 6. Install dependencies and start the server:
 
    ```sh

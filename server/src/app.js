@@ -2,6 +2,7 @@ import cors from 'cors'
 import express from 'express'
 import { env } from './config/env.js'
 import { errorHandler } from './middleware/errorHandler.js'
+import { pool } from './db/pool.js'
 import authRoutes from './routes/authRoutes.js'
 import listingRoutes from './routes/listingRoutes.js'
 import appointmentRoutes from './routes/appointmentRoutes.js'
@@ -14,8 +15,14 @@ export const app = express()
 app.use(cors({ origin: env.CLIENT_ORIGIN }))
 app.use(express.json({ limit: '1mb' }))
 
-app.get('/api/health', (_request, response) => {
-  response.json({ status: 'ok' })
+app.get('/api/health', async (_request, response) => {
+  try {
+    await pool.query('SELECT 1')
+    return response.json({ status: 'ok', database: 'ok' })
+  } catch (error) {
+    console.error('Database health check failed:', error)
+    return response.status(503).json({ status: 'degraded', database: 'unavailable' })
+  }
 })
 
 app.use('/api/auth', authRoutes)

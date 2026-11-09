@@ -1,0 +1,2 @@
+ALTER TABLE listings
+  ADD COLUMN IF NOT EXISTS amenities JSONB NOT NULL DEFAULT '[]'::jsonb;

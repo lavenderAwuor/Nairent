@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken'
 import { env } from '../config/env.js'
 import { pool } from '../db/pool.js'
 
-const publicUserColumns = 'id, full_name, email, role, created_at'
+const publicUserColumns = 'id, full_name, email, phone, role, created_at'
 
 function createToken(user) {
   return jwt.sign({ sub: user.id, role: user.role, email: user.email }, env.JWT_SECRET, {
@@ -11,13 +11,13 @@ function createToken(user) {
   })
 }
 
-export async function registerUser({ fullName, email, password, role }) {
+export async function registerUser({ fullName, email, password, phone, role }) {
   const passwordHash = await bcrypt.hash(password, 12)
   const result = await pool.query(
-    `INSERT INTO users (full_name, email, password_hash, role)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO users (full_name, email, password_hash, phone, role)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING ${publicUserColumns}`,
-    [fullName, email.toLowerCase(), passwordHash, role],
+    [fullName, email.toLowerCase(), passwordHash, phone, role],
   )
   const user = result.rows[0]
   return { user, token: createToken(user) }
@@ -25,7 +25,7 @@ export async function registerUser({ fullName, email, password, role }) {
 
 export async function loginUser({ email, password }) {
   const result = await pool.query(
-    'SELECT id, full_name, email, password_hash, role, created_at FROM users WHERE email = $1',
+    'SELECT id, full_name, email, phone, password_hash, role, created_at FROM users WHERE email = $1',
     [email.toLowerCase()],
   )
   const user = result.rows[0]
