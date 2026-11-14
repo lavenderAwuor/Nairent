@@ -1,6 +1,11 @@
+// Adds development-only sample users, locations, and rental listings.
 import 'dotenv/config'
 import bcrypt from 'bcryptjs'
 import pg from 'pg'
+
+if (process.env.NODE_ENV === 'production') {
+  throw new Error('Demo data cannot be seeded in production')
+}
 
 const { Pool } = pg
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 8_000 })
@@ -24,9 +29,9 @@ const locations = [
   { name: 'Kahawa West', latitude: -1.1965, longitude: 36.9218 },
   { name: 'Ruaka', latitude: -1.2026, longitude: 36.7825 },
   { name: 'Umoja', latitude: -1.2867, longitude: 36.8942 },
-  { name: 'Kasarani Mwiki', latitude: -1.2298, longitude: 36.9098 },
   { name: 'Ngong Road', latitude: -1.3032, longitude: 36.7668 },
   { name: 'Madaraka', latitude: -1.3075, longitude: 36.8242 },
+  { name: 'Utawala', latitude: -1.2858, longitude: 36.9582 },
 ]
 
 const listings = [
@@ -46,9 +51,10 @@ const listings = [
   { title: 'Kahawa West Starter Room', location: 'Kahawa West', description: 'Simple, well-connected room for a budget-conscious renter.', rent: 12000, bedrooms: 0 },
   { title: 'Ruaka Compact One Bedroom', location: 'Ruaka', description: 'Compact one-bedroom home close to local amenities and transport.', rent: 18000, bedrooms: 1 },
   { title: 'Umoja Family Apartment', location: 'Umoja', description: 'Practical two-bedroom apartment with easy access to the eastern bypass.', rent: 24000, bedrooms: 2 },
-  { title: 'Mwiki Green Court', location: 'Kasarani Mwiki', description: 'Affordable one-bedroom home in a growing residential neighborhood.', rent: 16000, bedrooms: 1 },
   { title: 'Ngong Road Garden Bedsitter', location: 'Ngong Road', description: 'Neat bedsitter with access to shops, offices and public transport.', rent: 20000, bedrooms: 0 },
   { title: 'Madaraka View Apartment', location: 'Madaraka', description: 'Bright one-bedroom apartment near schools, shops and town connections.', rent: 30000, bedrooms: 1 },
+  { title: 'Utawala Airways Court', location: 'Utawala', description: 'Modern two-bedroom apartment along Eastern Bypass near transport and shopping.', rent: 22000, bedrooms: 2 },
+  { title: 'Utawala Executive One Bedroom', location: 'Utawala', description: 'Spacious one-bedroom home with 24/7 water and ample parking in Utawala.', rent: 16000, bedrooms: 1 },
 ]
 
 const propertyPhotos = [
@@ -63,9 +69,10 @@ try {
     await client.query('BEGIN')
     const passwordHash = await bcrypt.hash(demoPassword, 12)
     const userResult = await client.query(
-      `INSERT INTO users (full_name, email, password_hash, role)
-       VALUES ('Nairent Demo Lister', $1, $2, 'lister')
-       ON CONFLICT (email) DO UPDATE SET role = 'lister'
+      `INSERT INTO users (full_name, email, password_hash, role, email_verified_at)
+       VALUES ('Nairent Demo Lister', $1, $2, 'lister', NOW())
+       ON CONFLICT (email) DO UPDATE
+       SET role = 'lister', email_verified_at = COALESCE(users.email_verified_at, NOW())
        RETURNING id`,
       [demoEmail, passwordHash],
     )

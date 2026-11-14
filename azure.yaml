@@ -1,0 +1,18 @@
+# Defines how Azure Developer CLI deploys the Nairent services.
+name: nairent
+metadata:
+  template: nairent
+
+services:
+  api:
+    project: ./server
+    host: appservice
+    language: js
+  web:
+    project: ./client
+    host: staticwebapp
+    language: js
+
+infra:
+  provider: bicep
+  path: infra

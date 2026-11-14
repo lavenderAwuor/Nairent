@@ -1,3 +1,4 @@
+-- Adds tenant viewing appointment records and their listing references.
 CREATE TYPE appointment_status AS ENUM ('requested', 'confirmed', 'declined', 'cancelled', 'completed');
 
 CREATE TABLE viewing_appointments (

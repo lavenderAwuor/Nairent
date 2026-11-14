@@ -1,8 +1,9 @@
+// Displays the main search entry point and headline.
 import { useState } from 'react'
 import { BellPlus, ChevronDown, MapPin, MapPinned, Search, Ticket } from 'lucide-react'
 import cedarCourtLivingRoom from '../../assets/landing/cedar-court-living-room.png'
 
-const neighborhoods = ['Any location', 'Kilimani', 'South B', 'Langata', 'Donholm', 'Kileleshwa', 'Roysambu', 'Kahawa West', 'Ruaka']
+const neighborhoods = ['Any location', 'Kilimani', 'South B', 'Langata', 'Donholm', 'Kileleshwa', 'Roysambu', 'Kahawa West', 'Ruaka', 'Utawala']
 const budgets = ['Any budget', 'Up to KSh 10,000', 'Up to KSh 15,000', 'Up to KSh 25,000', 'Up to KSh 40,000', 'Up to KSh 65,000', 'Up to KSh 100,000']
 const bedroomOptions = ['Any bedrooms', 'Studio', '1 bedroom', '2 bedrooms', '3+ bedrooms']
 const availabilityOptions = ['Available now', 'Available this month', 'Any time']
@@ -10,15 +11,14 @@ const availabilityOptions = ['Available now', 'Available this month', 'Any time'
 const benefits = [
   {
     icon: Ticket,
-    title: 'Free viewings, upfront',
-    description: 'Request a viewing without extra charges.',
+    title: 'Viewing fees, upfront',
+    description: 'See each lister’s viewing fee before you request a time.',
   },
   {
     icon: MapPinned,
     title: 'More neighborhood possibilities',
     description: 'Explore alternatives when no exact match exists.',
-  },
-  {
+  },  {
     icon: BellPlus,
     title: 'A search that stays with you',
     description: 'Save your preferences for new-listing alerts.',
@@ -78,7 +78,7 @@ export default function Hero() {
             you stand.
           </h1>
           <p className="max-w-[480px] text-base leading-relaxed text-ink-muted md:text-lg">
-            The right neighborhood, the right rent, and free viewings. A clearer rental
+            The right neighborhood, the right rent, and viewing fees shown upfront. A clearer rental
             search, made for Nairobi.
           </p>
           <div className="flex items-center gap-2.5">
@@ -100,7 +100,7 @@ export default function Hero() {
             </div>
             <div className="flex flex-col gap-1">
               <p className="text-sm font-semibold text-ink">KSh 65,000 / month</p>
-              <p className="text-[11px] text-brand">Free viewing</p>
+              <p className="text-[11px] text-brand">Fee shown on listing</p>
             </div>
           </div>
         </div>

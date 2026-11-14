@@ -1,3 +1,4 @@
+// Explains the renter and lister steps on the landing page.
 import { tenantJourney, listerJourney } from '../../data/landingContent.js'
 
 function JourneyStep({ step, title, description, markerClassName }) {

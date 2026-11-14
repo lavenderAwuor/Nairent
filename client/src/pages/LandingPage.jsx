@@ -1,3 +1,4 @@
+// Builds the public Nairent home page from its landing sections.
 import Navbar from '../components/landing/Navbar.jsx'
 import Hero from '../components/landing/Hero.jsx'
 import FeaturedListings from '../components/landing/FeaturedListings.jsx'

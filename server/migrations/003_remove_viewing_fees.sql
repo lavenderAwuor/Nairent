@@ -1,3 +1,4 @@
+-- Removes viewing-fee fields and enforces the free-viewing model.
 UPDATE listings SET viewing_fee = 0 WHERE viewing_fee <> 0;
 
 ALTER TABLE listings

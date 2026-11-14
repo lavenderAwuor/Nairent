@@ -1,3 +1,4 @@
+/* Sets the apps global font, colors, and base styles. */
 @import "tailwindcss";
 
 @theme {

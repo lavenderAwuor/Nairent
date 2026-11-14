@@ -1,3 +1,4 @@
+// Checks bearer-token authentication and role-protected requests.
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import jwt from 'jsonwebtoken'

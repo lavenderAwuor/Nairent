@@ -1,3 +1,4 @@
+// Shows neighborhood choices and explains alternative recommendations.
 import { ArrowUpRight, Route } from 'lucide-react'
 import { neighborhoods } from '../../data/landingContent.js'
 

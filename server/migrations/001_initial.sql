@@ -1,3 +1,4 @@
+-- Creates the initial users, locations, listings, and saved-search schema.
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE EXTENSION IF NOT EXISTS citext;
 

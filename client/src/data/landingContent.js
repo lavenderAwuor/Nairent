@@ -1,3 +1,4 @@
+// Holds the static copy, FAQs, and neighborhood details used on the home page.
 import cedarCourtLivingRoom from '../assets/landing/cedar-court-living-room.png'
 import propertyPhotograph1 from '../assets/landing/property-photograph-1.png'
 import propertyPhotograph2 from '../assets/landing/property-photograph-2.png'
@@ -15,7 +16,7 @@ export const featuredListings = [
     beds: 2,
     baths: 2,
     area: '94 m²',
-    viewingFee: { label: 'Free viewing', kind: 'free' },
+    viewingFee: { label: 'Viewing fee varies', kind: 'info' },
     availability: 'Available now',
   },
   {
@@ -28,7 +29,7 @@ export const featuredListings = [
     beds: 2,
     baths: 2,
     area: '86 m²',
-    viewingFee: { label: 'Free viewing', kind: 'free' },
+    viewingFee: { label: 'Viewing fee varies', kind: 'info' },
     availability: 'Available now',
   },
   {
@@ -41,7 +42,7 @@ export const featuredListings = [
     beds: 2,
     baths: 2,
     area: '72 m²',
-    viewingFee: { label: 'Free viewing', kind: 'free' },
+    viewingFee: { label: 'Viewing fee varies', kind: 'info' },
     availability: 'Available now',
   },
 ]
@@ -70,6 +71,12 @@ export const neighborhoods = [
     photo: neighborhoodRental2,
     name: 'Donholm',
     description: 'Explore homes east of the city',
+  },
+  {
+    id: 'utawala',
+    photo: neighborhoodRental1,
+    name: 'Utawala',
+    description: 'Affordable modern living along Eastern Bypass',
   },
 ]
 
@@ -111,9 +118,9 @@ export const listerJourney = [
 
 export const faqItems = [
   {
-    question: 'Are viewings free?',
+    question: 'How much does a viewing cost?',
     answer:
-      'Yes. Viewings arranged through Nairent are free. The platform does not charge a booking or viewing fee.',
+      'Each lister sets the viewing fee for their property. The amount is shown on the listing before you request a time. Confirm payment arrangements directly with the lister; Nairent does not collect viewing fees.',
   },
   {
     question: 'What if there are no homes that match my search?',

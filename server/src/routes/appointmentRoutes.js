@@ -1,11 +1,15 @@
+// Endpoints for requesting viewings and viewing a tenant appointment history.
 import { Router } from 'express'
 import { z } from 'zod'
 import { requireAuth } from '../middleware/requireAuth.js'
 import { requireRole } from '../middleware/requireRole.js'
 import { optionalAuth } from '../middleware/optionalAuth.js'
+import { createRateLimiter } from '../middleware/security.js'
 import { createAppointment, getAppointmentsForTenant } from '../services/appointmentService.js'
 
 const router = Router()
+const appointmentLimiter = createRateLimiter({ windowMs: 60_000, max: 20, message: 'Too many viewing requests, please wait a minute.' })
+
 const appointmentSchema = z.object({
   listingId: z.string().uuid(),
   preferredDate: z.string().date(),
@@ -15,7 +19,7 @@ const appointmentSchema = z.object({
   note: z.string().trim().max(500).optional(),
 })
 
-router.post('/', optionalAuth, async (request, response, next) => {
+router.post('/', optionalAuth, appointmentLimiter, async (request, response, next) => {
   try {
     const input = appointmentSchema.parse(request.body)
     const appointment = await createAppointment({ ...input, tenantId: request.user?.sub })

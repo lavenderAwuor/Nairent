@@ -1,3 +1,4 @@
+// Invites property owners to create lister accounts.
 import { ArrowRight, Info } from 'lucide-react'
 import imaniParkResidences from '../../assets/landing/imani-park-residences.png'
 

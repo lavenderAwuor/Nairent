@@ -1,17 +1,30 @@
+// Displays the landing page footer and navigation links.
 import brandMark from '../../assets/landing/brand-mark.svg'
 
 const footerGroups = [
   {
     title: 'Find a home',
-    links: ['Browse rentals', 'Explore neighborhoods', 'Saved searches'],
+    links: [
+      { label: 'Browse rentals', href: '#browse' },
+      { label: 'Explore neighborhoods', href: '#neighborhoods' },
+      { label: 'Saved searches', href: '#account' },
+    ],
   },
   {
     title: 'For listers',
-    links: ['List a property', 'Lister sign in', 'Listing guidelines'],
+    links: [
+      { label: 'List a property', href: '#list-a-property' },
+      { label: 'Lister workspace', href: '#dashboard' },
+      { label: 'Admin moderation', href: '#admin' },
+    ],
   },
   {
     title: 'Nairent',
-    links: ['Help & support', 'Terms of use', 'Privacy policy'],
+    links: [
+      { label: 'How it works', href: '#how-it-works' },
+      { label: 'Viewing fees', href: '#rentals' },
+      { label: 'Help & support', href: '#support' },
+    ],
   },
 ]
 
@@ -27,7 +40,7 @@ export default function Footer() {
             </p>
           </div>
           <p className="text-[15px] leading-relaxed text-ink-muted">
-            A clearer way to find and list a rental home in Nairobi.
+            A clearer way to find and list a rental home in Nairobi, with viewing fees shown upfront.
           </p>
         </div>
 
@@ -36,8 +49,8 @@ export default function Footer() {
             <div key={group.title} className="flex flex-col gap-3 text-sm">
               <p className="font-semibold text-ink">{group.title}</p>
               {group.links.map((link) => (
-                <a key={link} href="#top" className="text-ink-muted">
-                  {link}
+                <a key={link.label} href={link.href} className="text-ink-muted hover:text-brand">
+                  {link.label}
                 </a>
               ))}
             </div>
@@ -48,8 +61,8 @@ export default function Footer() {
       <div className="h-px w-full bg-border" />
 
       <div className="flex flex-col gap-2 text-[11px] text-ink-muted sm:flex-row sm:items-start sm:justify-between">
-        <p>© 2026 Nairent · Nairobi, Kenya</p>
-        <p>Illustrative listings only. Confirm availability and rental terms before paying.</p>
+        <p>© 2026 Nairent · Nairobi, Kenya · Viewing fees vary by property</p>
+        <p>Confirm availability and rental terms before paying any security deposit.</p>
       </div>
     </footer>
   )

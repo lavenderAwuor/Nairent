@@ -1,3 +1,4 @@
+// Applies unapplied SQL migrations to the configured PostgreSQL database.
 import 'dotenv/config'
 import fs from 'node:fs/promises'
 import path from 'node:path'

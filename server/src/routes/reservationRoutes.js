@@ -1,8 +1,12 @@
+// Accepts reservation-interest requests for available properties.
 import { Router } from 'express'
 import { z } from 'zod'
 import { pool } from '../db/pool.js'
+import { createRateLimiter } from '../middleware/security.js'
 
 const router = Router()
+const reservationLimiter = createRateLimiter({ windowMs: 60_000, max: 20, message: 'Too many reservation requests, please wait a minute.' })
+
 const reservationSchema = z.object({
   listingId: z.string().uuid(),
   guestName: z.string().trim().min(2).max(120),
@@ -11,7 +15,7 @@ const reservationSchema = z.object({
   note: z.string().trim().max(500).optional(),
 })
 
-router.post('/', async (request, response, next) => {
+router.post('/', reservationLimiter, async (request, response, next) => {
   try {
     const input = reservationSchema.parse(request.body)
     const result = await pool.query(

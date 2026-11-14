@@ -1,7 +1,11 @@
+// Creates and updates listings owned by listers.
 import { pool } from '../db/pool.js'
+import { queueListingAlerts } from './listingAlertService.js'
 
-const listingColumns = `l.id, l.title, l.description, l.monthly_rent, l.bedrooms,
-  l.availability_status, l.moderation_status, l.amenities, loc.name AS location_name`
+const listingColumns = `l.id, l.title, l.description, l.monthly_rent, l.viewing_fee, l.bedrooms,
+  l.availability_status, l.moderation_status, l.amenities, l.property_address,
+  l.latitude AS property_latitude, l.longitude AS property_longitude,
+  loc.name AS location_name`
 
 export async function getListingsForLister(ownerId) {
   const result = await pool.query(
@@ -22,18 +26,18 @@ export async function getListingsForLister(ownerId) {
   return result.rows
 }
 
-export async function createListerListing({ ownerId, title, description, monthlyRent, bedrooms, location, amenities, photoUrls }) {
+export async function createListerListing({ ownerId, title, description, monthlyRent, viewingFee, bedrooms, location, propertyAddress, latitude, longitude, amenities, photoUrls }) {
   const client = await pool.connect()
   try {
     await client.query('BEGIN')
     const result = await client.query(
       `INSERT INTO listings
-        (owner_id, location_id, title, description, monthly_rent, bedrooms, availability_status, moderation_status, amenities)
-       SELECT $1, id, $2, $3, $4, $5, 'available', 'approved', $7::jsonb
+        (owner_id, location_id, title, description, monthly_rent, bedrooms, availability_status, moderation_status, amenities, property_address, latitude, longitude, viewing_fee)
+       SELECT $1, id, $2, $3, $4, $5, 'available', 'pending', $7::jsonb, $8, $9, $10, $11
        FROM locations
        WHERE LOWER(name) = LOWER($6)
        RETURNING id`,
-      [ownerId, title, description, monthlyRent, bedrooms, location, JSON.stringify(amenities)],
+      [ownerId, title, description, monthlyRent, bedrooms, location, JSON.stringify(amenities), propertyAddress, latitude, longitude, viewingFee],
     )
     if (!result.rows[0]) {
       await client.query('ROLLBACK')
@@ -51,6 +55,7 @@ export async function createListerListing({ ownerId, title, description, monthly
       `SELECT id, image_url AS "imageUrl" FROM listing_photos WHERE listing_id = $1 ORDER BY sort_order`,
       [result.rows[0].id],
     )
+    await queueListingAlerts(client, result.rows[0].id)
     await client.query('COMMIT')
     return listing.rows[0] ? { ...listing.rows[0], photos: photos.rows } : null
   } catch (error) {
@@ -65,13 +70,13 @@ async function insertPhotos(client, listingId, photoUrls) {
   if (photoUrls.length === 0) return
   await client.query(
     `INSERT INTO listing_photos (listing_id, image_url, sort_order)
-     SELECT $1, photo_url, row_number() OVER () - 1
-     FROM unnest($2::text[]) AS photo_url`,
+     SELECT $1, photo_url, ordinal - 1
+     FROM unnest($2::text[]) WITH ORDINALITY AS photos(photo_url, ordinal)`,
     [listingId, photoUrls],
   )
 }
 
-export async function updateListerListing({ ownerId, listingId, title, description, monthlyRent, bedrooms, location, amenities, photoUrls, availability }) {
+export async function updateListerListing({ ownerId, listingId, title, description, monthlyRent, viewingFee, bedrooms, location, propertyAddress, latitude, longitude, amenities, photoUrls, availability }) {
   const client = await pool.connect()
   try {
     await client.query('BEGIN')
@@ -79,11 +84,13 @@ export async function updateListerListing({ ownerId, listingId, title, descripti
       `UPDATE listings l
        SET title = $3, description = $4, monthly_rent = $5, bedrooms = $6,
            location_id = (SELECT id FROM locations WHERE LOWER(name) = LOWER($7)),
-           amenities = $8::jsonb, availability_status = $9, updated_at = NOW()
+           amenities = $8::jsonb, availability_status = $9, property_address = $10,
+           latitude = $11, longitude = $12, viewing_fee = $13,
+           updated_at = NOW()
        WHERE l.id = $1 AND l.owner_id = $2
          AND EXISTS (SELECT 1 FROM locations WHERE LOWER(name) = LOWER($7))
        RETURNING l.id`,
-      [listingId, ownerId, title, description, monthlyRent, bedrooms, location, JSON.stringify(amenities), availability],
+      [listingId, ownerId, title, description, monthlyRent, bedrooms, location, JSON.stringify(amenities), availability, propertyAddress, latitude, longitude, viewingFee],
     )
     if (!result.rows[0]) {
       await client.query('ROLLBACK')
@@ -102,15 +109,27 @@ export async function updateListerListing({ ownerId, listingId, title, descripti
 }
 
 export async function updateListingAvailability(ownerId, listingId, availability) {
-  const result = await pool.query(
-    `UPDATE listings
-     SET availability_status = $3, updated_at = NOW()
-     WHERE id = $1 AND owner_id = $2
-     RETURNING id`,
-    [listingId, ownerId, availability],
-  )
-  if (!result.rows[0]) return null
-  return (await getListingsForLister(ownerId)).find((listing) => listing.id === listingId) ?? null
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+    const result = await client.query(
+      'UPDATE listings SET availability_status = $3, updated_at = NOW() ' +
+      'WHERE id = $1 AND owner_id = $2 RETURNING id',
+      [listingId, ownerId, availability],
+    )
+    if (!result.rows[0]) {
+      await client.query('ROLLBACK')
+      return null
+    }
+    await queueListingAlerts(client, listingId)
+    await client.query('COMMIT')
+    return (await getListingsForLister(ownerId)).find((listing) => listing.id === listingId) ?? null
+  } catch (error) {
+    await client.query('ROLLBACK')
+    throw error
+  } finally {
+    client.release()
+  }
 }
 
 export async function deleteListerListing(ownerId, listingId) {

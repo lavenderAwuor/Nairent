@@ -1,3 +1,4 @@
+// Attaches a signed-in user when a valid token is present; guests may continue.
 import jwt from 'jsonwebtoken'
 import { env } from '../config/env.js'
 

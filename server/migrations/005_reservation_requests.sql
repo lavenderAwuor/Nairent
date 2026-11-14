@@ -1,3 +1,4 @@
+-- Adds reservation-interest requests for available listings.
 CREATE TYPE reservation_status AS ENUM ('requested', 'accepted', 'declined', 'cancelled');
 
 CREATE TABLE reservations (

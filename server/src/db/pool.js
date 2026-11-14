@@ -1,3 +1,4 @@
+// Creates the shared PostgreSQL connection pool.
 import pg from 'pg'
 import { env } from '../config/env.js'
 

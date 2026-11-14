@@ -1,3 +1,4 @@
+// Encourages renters to save a search for later.
 import { ArrowRight, BellRing } from 'lucide-react'
 
 export default function SaveSearchCta() {

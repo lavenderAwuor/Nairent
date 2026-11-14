@@ -1,3 +1,4 @@
+// Displays frequently asked questions on the landing page.
 import { useState } from 'react'
 import { Minus, Plus } from 'lucide-react'
 import { faqItems } from '../../data/landingContent.js'
@@ -36,7 +37,7 @@ export default function Faq() {
         <p className="text-[15px] leading-relaxed text-ink-muted">
           A few things to know before you find a home or list one.
         </p>
-        <a href="#top" className="text-sm font-semibold text-brand">
+        <a href="#support" className="text-sm font-semibold text-brand">
           Help &amp; support →
         </a>
       </div>

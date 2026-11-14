@@ -1,3 +1,4 @@
+// Returns available neighborhoods and their map coordinates.
 import { Router } from 'express'
 import { listLocations } from '../services/locationService.js'
 

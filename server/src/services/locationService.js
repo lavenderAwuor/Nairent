@@ -1,3 +1,4 @@
+// Reads the neighborhoods available to renters and listers.
 import { pool } from '../db/pool.js'
 
 export async function listLocations() {
