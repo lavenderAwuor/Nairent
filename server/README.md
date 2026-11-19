@@ -145,3 +145,34 @@ settings, set `EMAIL_VERIFICATION_ORIGIN` to the frontend origin, and set the
 frontend `VITE_API_URL` to the deployed API URL. Never put
 `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, or `JWT_SECRET` in frontend
 variables.
+
+## Deploying both services on Vercel
+
+The root `vercel.json` configures the Vercel Services beta to build `client/`
+with Vite and `server/` with Express in one project. Connect the repository to
+Vercel with the repository root as the project root; requests to `/api/*` go
+to the server, and all other paths go to the client. The client already uses
+`/api` by default, so leave `VITE_API_URL` unset when both services share the
+Vercel domain.
+
+Before deploying, apply the database migrations to the production database.
+In the Vercel project settings, add these server environment variables:
+
+- `DATABASE_URL`: the Supabase PostgreSQL connection string (use the Session
+  pooler URL).
+- `JWT_SECRET`: a randomly generated secret with at least 32 characters.
+- `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
+- `CLIENT_ORIGIN`: the deployed client origin, such as `https://your-domain`.
+- `EMAIL_VERIFICATION_ORIGIN`: the same client origin; it must also appear in
+  `CLIENT_ORIGIN`.
+- `SMTP_HOST` and `SMTP_FROM`. Add `SMTP_USER` and `SMTP_PASSWORD` together
+  when required by your mail provider. `SMTP_PORT` and `SMTP_SECURE` are
+  optional and default to `587` and `false`.
+
+If using Google Maps, add `VITE_GOOGLE_MAPS_API_KEY` and
+`VITE_GOOGLE_MAPS_MAP_ID` as Vercel environment variables for the client build.
+These `VITE_` values are public in the built client; never use that prefix for
+server secrets. The continuously running saved-search email worker is started
+only by `server/src/server.js`, so it does not run as part of Vercel's
+serverless Express service; deploy that worker separately if saved-search
+alerts are required.

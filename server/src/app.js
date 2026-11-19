@@ -21,6 +21,7 @@ import adminRoutes from './routes/adminRoutes.js'
 import supportRoutes from './routes/supportRoutes.js'
 
 export const app = express()
+export default app
 
 const appDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const candidateRoots = [
