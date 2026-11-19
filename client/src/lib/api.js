@@ -71,14 +71,6 @@ export function register(input) {
   return request('/auth/register', { method: 'POST', body: JSON.stringify(input) })
 }
 
-export function resendEmailVerification(email) {
-  return request('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) })
-}
-
-export function verifyEmail(token, password) {
-  return request('/auth/verify-email', { method: 'POST', body: JSON.stringify({ token, password }) })
-}
-
 export function getMyListings() {
   return request('/lister/listings', { headers: authHeaders() })
 }
@@ -119,18 +111,10 @@ export function deleteSavedSearch(id) {
   return request(`/saved-searches/${id}`, { method: 'DELETE', headers: authHeaders() })
 }
 
-export function updateSavedSearchNotifications(id, notifyNewListings) {
-  return request('/saved-searches/' + id + '/notifications', {
-    method: 'PATCH',
-    body: JSON.stringify({ notifyNewListings }),
-    headers: authHeaders(),
-  })
-}
-
-export function updateReservationStatus(id, status, { resendEmail = false } = {}) {
+export function updateReservationStatus(id, status) {
   return request(`/lister/reservations/${id}/status`, {
     method: 'PATCH',
-    body: JSON.stringify({ status, resendEmail }),
+    body: JSON.stringify({ status }),
     headers: authHeaders(),
   })
 }

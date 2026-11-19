@@ -1,6 +1,5 @@
 // Creates and updates listings owned by listers.
 import { pool } from '../db/pool.js'
-import { queueListingAlerts } from './listingAlertService.js'
 
 const listingColumns = `l.id, l.title, l.description, l.monthly_rent, l.viewing_fee, l.bedrooms,
   l.availability_status, l.moderation_status, l.amenities, l.property_address,
@@ -55,7 +54,6 @@ export async function createListerListing({ ownerId, title, description, monthly
       `SELECT id, image_url AS "imageUrl" FROM listing_photos WHERE listing_id = $1 ORDER BY sort_order`,
       [result.rows[0].id],
     )
-    await queueListingAlerts(client, result.rows[0].id)
     await client.query('COMMIT')
     return listing.rows[0] ? { ...listing.rows[0], photos: photos.rows } : null
   } catch (error) {
@@ -121,7 +119,6 @@ export async function updateListingAvailability(ownerId, listingId, availability
       await client.query('ROLLBACK')
       return null
     }
-    await queueListingAlerts(client, listingId)
     await client.query('COMMIT')
     return (await getListingsForLister(ownerId)).find((listing) => listing.id === listingId) ?? null
   } catch (error) {

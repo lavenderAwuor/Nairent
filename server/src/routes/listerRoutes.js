@@ -7,12 +7,10 @@ import { createListerListing, deleteListerListing, getListingsForLister, updateL
 import { uploadListingPhotos } from '../services/storageService.js'
 import { getAppointmentsForLister, updateAppointmentStatus } from '../services/appointmentService.js'
 import { getReservationsForLister, updateReservationStatus } from '../services/reservationService.js'
-import { sendReservationAcceptedEmail } from '../services/emailService.js'
 import { createRateLimiter } from '../middleware/security.js'
 import multer from 'multer'
 
 const router = Router()
-const reservationEmailLimiter = createRateLimiter({ windowMs: 60_000, max: 5, message: 'Too many reservation emails. Please wait a minute before trying again.' })
 const photoUploadLimiter = createRateLimiter({ windowMs: 60_000, max: 5, message: 'Too many photo uploads. Please wait a minute before trying again.' })
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -52,7 +50,6 @@ const appointmentStatusSchema = z.object({
 })
 const reservationStatusSchema = z.object({
   status: z.enum(['accepted', 'declined', 'cancelled']),
-  resendEmail: z.boolean().default(false),
 })
 
 router.use(requireAuth, requireRole('lister'))
@@ -102,26 +99,13 @@ router.get('/reservations', async (request, response, next) => {
   }
 })
 
-router.patch('/reservations/:reservationId/status', (request, response, next) => {
-  if (request.body?.resendEmail) return reservationEmailLimiter(request, response, next)
-  return next()
-}, async (request, response, next) => {
+router.patch('/reservations/:reservationId/status', async (request, response, next) => {
   try {
-    const { status, resendEmail } = reservationStatusSchema.parse(request.body)
+    const { status } = reservationStatusSchema.parse(request.body)
     const reservation = await updateReservationStatus(request.user.sub, request.params.reservationId, status)
     if (!reservation) return response.status(404).json({ error: 'Reservation not found' })
 
-    let notificationSent = null
-    if (status === 'accepted' && reservation.reservation.status === 'accepted' && (reservation.changed || resendEmail)) {
-      try {
-        notificationSent = await sendReservationAcceptedEmail(reservation.reservation)
-      } catch (error) {
-        console.error('Could not send reservation acceptance email:', error)
-        notificationSent = false
-      }
-    }
-
-    return response.json({ reservation: reservation.reservation, notificationSent })
+    return response.json({ reservation: reservation.reservation })
   } catch (error) {
     return next(error)
   }

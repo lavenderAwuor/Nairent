@@ -1,9 +1,9 @@
-// Handles renter and lister signup, login, and confirmation prompts.
+// Handles renter and lister signup and login.
 import { useState } from 'react'
 import { Eye, EyeOff, LockKeyhole, Mail, Phone, UserRound } from 'lucide-react'
 import brandMark from '../assets/landing/brand-mark.svg'
 import propertyPhotograph from '../assets/landing/property-photograph-1.png'
-import { login, register, resendEmailVerification, saveToken } from '../lib/api.js'
+import { login, register, saveToken } from '../lib/api.js'
 
 const modes = {
   login: {
@@ -17,26 +17,11 @@ const modes = {
   signup: {
     eyebrow: 'JOIN NAIRENT',
     title: 'Create an account',
-    description: 'Join Nairent to search homes, see viewing fees upfront, or list rental properties. Confirm your email to set a password.',
+    description: 'Join Nairent to search homes, see viewing fees upfront, or list rental properties.',
     submit: 'Create account',
     switchPrompt: 'Already have an account?',
     switchLabel: 'Sign in',
   },
-}
-
-// Replaces loopback hosts in development links so another device can open the same test app.
-function getDevelopmentVerificationUrl(url) {
-  if (!url) return ''
-  try {
-    const verificationUrl = new URL(url, window.location.origin)
-    if (['localhost', '127.0.0.1', '::1'].includes(verificationUrl.hostname)) {
-      verificationUrl.protocol = window.location.protocol
-      verificationUrl.host = window.location.host
-    }
-    return verificationUrl.toString()
-  } catch {
-    return ''
-  }
 }
 
 function Field({ label, name, type = 'text', value, onChange, icon: Icon, error, placeholder, children }) {
@@ -76,13 +61,6 @@ export default function AuthPage({ initialMode = 'login', initialRole = 'lister'
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
   const [requestError, setRequestError] = useState('')
-  const [verificationSent, setVerificationSent] = useState(false)
-  const [emailDeliveryConfigured, setEmailDeliveryConfigured] = useState(null)
-  const [emailDeliveryStatus, setEmailDeliveryStatus] = useState('')
-  const [developmentVerificationUrl, setDevelopmentVerificationUrl] = useState('')
-  const [verificationRequired, setVerificationRequired] = useState(false)
-  const [confirmationNotice, setConfirmationNotice] = useState('')
-  const [resending, setResending] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const copy = modes[mode]
 
@@ -91,9 +69,6 @@ export default function AuthPage({ initialMode = 'login', initialRole = 'lister'
     setErrors({})
     setSubmitted(false)
     setRequestError('')
-    setVerificationRequired(false)
-    setConfirmationNotice('')
-    setDevelopmentVerificationUrl('')
   }
 
   function handleChange(event) {
@@ -102,25 +77,15 @@ export default function AuthPage({ initialMode = 'login', initialRole = 'lister'
     setErrors((current) => ({ ...current, [name]: '' }))
     setSubmitted(false)
     setRequestError('')
-    setVerificationRequired(false)
-    setConfirmationNotice('')
-    setDevelopmentVerificationUrl('')
   }
 
-  async function resendConfirmation() {
-    setResending(true)
-    setConfirmationNotice('')
-    setRequestError('')
-    try {
-      const result = await resendEmailVerification(form.email)
-      setConfirmationNotice(result.message)
-      setEmailDeliveryConfigured(result.emailDeliveryConfigured)
-      setEmailDeliveryStatus(result.emailDeliveryStatus || '')
-      setDevelopmentVerificationUrl(getDevelopmentVerificationUrl(result.developmentVerificationUrl))
-    } catch (error) {
-      setRequestError(error.message)
-    } finally {
-      setResending(false)
+  function openWorkspace(userRole) {
+    if (userRole === 'admin') {
+      window.location.hash = '#admin'
+    } else if (userRole === 'lister') {
+      window.location.hash = '#dashboard'
+    } else {
+      window.location.hash = '#account'
     }
   }
 
@@ -132,8 +97,8 @@ export default function AuthPage({ initialMode = 'login', initialRole = 'lister'
     if (mode === 'signup' && !form.phone.trim()) nextErrors.phone = 'Enter a valid phone number.'
     if (!form.email.trim()) nextErrors.email = 'Enter your email address.'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) nextErrors.email = 'Enter a valid email address.'
-    if (mode === 'login' && !form.password) nextErrors.password = 'Enter your password.'
-    else if (mode === 'login' && form.password.length < 8) nextErrors.password = 'Use at least 8 characters.'
+    if (!form.password) nextErrors.password = 'Enter your password.'
+    else if (form.password.length < 8 || form.password.length > 72) nextErrors.password = 'Use a password between 8 and 72 characters.'
 
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
@@ -141,76 +106,17 @@ export default function AuthPage({ initialMode = 'login', initialRole = 'lister'
     setSubmitting(true)
     setRequestError('')
     try {
-      if (mode === 'signup') {
-        const result = await register({ fullName: form.name, email: form.email, phone: form.phone, role })
-        setVerificationSent(true)
-        setConfirmationNotice(result.message)
-        setEmailDeliveryConfigured(result.emailDeliveryConfigured)
-        setEmailDeliveryStatus(result.emailDeliveryStatus || '')
-        setDevelopmentVerificationUrl(getDevelopmentVerificationUrl(result.developmentVerificationUrl))
-        return
-      }
-
-      const result = await login({ email: form.email, password: form.password })
-
+      const result = mode === 'signup'
+        ? await register({ fullName: form.name, email: form.email, phone: form.phone, password: form.password, role })
+        : await login({ email: form.email, password: form.password })
       saveToken(result.token)
       setSubmitted(true)
-      const userRole = result.user?.role
-      if (userRole === 'admin') {
-        window.location.hash = '#admin'
-      } else if (userRole === 'lister') {
-        window.location.hash = '#dashboard'
-      } else {
-        window.location.hash = '#account'
-      }
+      openWorkspace(result.user?.role)
     } catch (error) {
       setRequestError(error.message)
-      setVerificationRequired(error.code === 'EMAIL_NOT_VERIFIED')
     } finally {
       setSubmitting(false)
     }
-  }
-
-  if (verificationSent) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-page px-5 py-10">
-        <section className="w-full max-w-[480px] rounded-2xl border border-border bg-surface p-8 text-center shadow-sm sm:p-10">
-          <a href="#top" aria-label="Nairent home" className="mx-auto mb-6 inline-flex items-center gap-2.5">
-            <img src={brandMark} alt="" className="size-8" />
-            <span className="text-xl font-bold text-brand">nairent<span className="text-brand-muted">.</span></span>
-          </a>
-          <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-brand-tint text-brand"><Mail size={25} /></div>
-          <h1 className="mt-5 text-2xl font-semibold text-ink">
-            {emailDeliveryStatus === 'not_configured' || emailDeliveryStatus === 'unavailable'
-              ? 'Email delivery needs attention'
-              : 'Check your email'}
-          </h1>
-          <p className="mt-3 text-sm leading-relaxed text-ink-muted">
-            If this address needs confirmation, we’ll send a link to <span className="font-semibold text-ink">{form.email}</span>. Open it to confirm your email and set your password.
-          </p>
-          {confirmationNotice && <p className="mt-4 text-xs text-ink-muted" role="status">{confirmationNotice}</p>}
-          {developmentVerificationUrl && (
-            <div className="mt-4 rounded-lg border border-brand/20 bg-brand-tint p-4 text-left" role="status">
-              <p className="text-xs font-semibold text-brand">Development test link</p>
-              <p className="mt-1 text-xs leading-relaxed text-ink-muted">Email delivery is off, so open this one-time link to confirm the account and set its password.</p>
-              <a href={developmentVerificationUrl} className="mt-3 inline-block text-sm font-semibold text-brand underline">Confirm email and set password</a>
-            </div>
-          )}
-          {(emailDeliveryConfigured === false || emailDeliveryStatus === 'unavailable') && (
-            <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-left text-xs leading-relaxed text-amber-900" role="alert">
-              {emailDeliveryStatus === 'unavailable'
-                ? 'The email service is configured but could not connect or deliver this message. The administrator should check SMTP settings, then you can resend the confirmation link.'
-                : 'This server cannot send email yet. Ask the site administrator to configure SMTP, then resend your confirmation link.'}
-            </p>
-          )}
-          {requestError && <p className="mt-4 text-sm text-red-600" role="alert">{requestError}</p>}
-          <button type="button" onClick={resendConfirmation} disabled={resending} className="mt-6 h-11 w-full rounded-lg border border-brand text-sm font-semibold text-brand disabled:opacity-60">
-            {resending ? 'Sending…' : 'Resend confirmation email'}
-          </button>
-          <a href="#sign-in" className="mt-5 inline-block text-sm font-semibold text-brand hover:underline">Back to sign in</a>
-        </section>
-      </main>
-    )
   }
 
   return (
@@ -309,26 +215,25 @@ export default function AuthPage({ initialMode = 'login', initialRole = 'lister'
               >
                 {null}
               </Field>
-              {mode === 'login' && (
-                <Field
-                  label="Password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={form.password}
-                  onChange={handleChange}
-                  icon={LockKeyhole}
-                  error={errors.password}
+              <Field
+                label="Password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                value={form.password}
+                onChange={handleChange}
+                icon={LockKeyhole}
+                error={errors.password}
+                placeholder={mode === 'signup' ? 'Create a password (8–72 characters)' : 'Enter your password'}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-brand"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((visible) => !visible)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-brand"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                  </button>
-                </Field>
-              )}
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </Field>
 
               <button
                 type="submit"
@@ -338,16 +243,6 @@ export default function AuthPage({ initialMode = 'login', initialRole = 'lister'
                 {submitting ? 'Please wait…' : copy.submit}
               </button>
               {requestError && <p className="text-center text-xs text-red-600" role="alert">{requestError}</p>}
-              {mode === 'login' && (verificationRequired || requestError === 'Invalid email or password') && (
-                <div className="rounded-lg bg-brand-tint p-3 text-center">
-                  <p className="mb-2 text-xs text-ink-muted">Still waiting for an email confirmation?</p>
-                  <button type="button" onClick={resendConfirmation} disabled={resending} className="text-xs font-semibold text-brand underline disabled:opacity-60">
-                    {resending ? 'Sending confirmation…' : 'Resend confirmation email'}
-                  </button>
-                  {confirmationNotice && <p className="mt-2 text-xs text-ink-muted" role="status">{confirmationNotice}</p>}
-                  {developmentVerificationUrl && <a href={developmentVerificationUrl} className="mt-2 inline-block text-xs font-semibold text-brand underline">Open development confirmation link</a>}
-                </div>
-              )}
               {submitted && (
                 <p className="text-center text-xs text-brand" role="status">
                   Authenticated successfully. Opening your workspace…

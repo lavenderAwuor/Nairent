@@ -561,7 +561,6 @@ export default function AdminDashboard() {
                       <th className="p-3.5 font-semibold">User</th>
                       <th className="p-3.5 font-semibold">Contact Info</th>
                       <th className="p-3.5 font-semibold">Role</th>
-                      <th className="p-3.5 font-semibold">Email</th>
                       <th className="p-3.5 font-semibold">Activity</th>
                       <th className="p-3.5 font-semibold">Registered</th>
                       <th className="p-3.5 font-semibold text-right">Actions</th>
@@ -570,7 +569,7 @@ export default function AdminDashboard() {
                   <tbody className="divide-y divide-border">
                     {filteredUsers.length === 0 && (
                       <tr>
-                        <td colSpan="7" className="p-6 text-center text-ink-muted">
+                        <td colSpan="6" className="p-6 text-center text-ink-muted">
                           No users found matching your search.
                         </td>
                       </tr>
@@ -601,11 +600,6 @@ export default function AdminDashboard() {
                               <option value="lister">Lister</option>
                               <option value="admin">Admin</option>
                             </select>
-                          </td>
-                          <td className="p-3.5">
-                            <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${u.email_verified_at ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
-                              {u.email_verified_at ? 'Confirmed' : 'Pending'}
-                            </span>
                           </td>
                           <td className="p-3.5 text-ink-muted">
                             {u.role === 'lister' ? `${u.listing_count} properties` : `${u.appointment_count} appointments`}

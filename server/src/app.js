@@ -8,7 +8,6 @@ import { clientOrigins } from './config/env.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { securityHeaders } from './middleware/security.js'
 import { pool } from './db/pool.js'
-import { getEmailTransportStatus } from './services/emailService.js'
 import authRoutes from './routes/authRoutes.js'
 import listingRoutes from './routes/listingRoutes.js'
 import appointmentRoutes from './routes/appointmentRoutes.js'
@@ -55,7 +54,6 @@ app.get('/api/health', async (_request, response) => {
     return response.json({
       status: 'ok',
       database: 'ok',
-      email: getEmailTransportStatus(),
     })
   } catch (error) {
     console.error('Database health check failed:', error)

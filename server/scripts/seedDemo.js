@@ -69,10 +69,10 @@ try {
     await client.query('BEGIN')
     const passwordHash = await bcrypt.hash(demoPassword, 12)
     const userResult = await client.query(
-      `INSERT INTO users (full_name, email, password_hash, role, email_verified_at)
-       VALUES ('Nairent Demo Lister', $1, $2, 'lister', NOW())
+      `INSERT INTO users (full_name, email, password_hash, role)
+       VALUES ('Nairent Demo Lister', $1, $2, 'lister')
        ON CONFLICT (email) DO UPDATE
-       SET role = 'lister', email_verified_at = COALESCE(users.email_verified_at, NOW())
+       SET role = 'lister'
        RETURNING id`,
       [demoEmail, passwordHash],
     )

@@ -1,7 +1,7 @@
-// Shows a renters appointments, messages, saved searches, and alerts.
+// Shows a renter's appointments, messages, and saved searches.
 import { useEffect, useState } from 'react'
 import { ArrowLeft, CalendarDays, Heart, LogOut, MessageSquare, Search, Trash2 } from 'lucide-react'
-import { clearToken, deleteSavedSearch, getCurrentUser, getMyAppointments, getMyTenantInquiries, getSavedSearches, getToken, updateSavedSearchNotifications } from '../lib/api.js'
+import { clearToken, deleteSavedSearch, getCurrentUser, getMyAppointments, getMyTenantInquiries, getSavedSearches, getToken } from '../lib/api.js'
 import FeedbackToast from '../components/FeedbackToast.jsx'
 import useFeedback from '../hooks/useFeedback.js'
 
@@ -12,7 +12,6 @@ export default function TenantDashboard() {
   const [inquiries, setInquiries] = useState([])
   const [state, setState] = useState({ loading: true, error: '' })
   const [deletingSearchId, setDeletingSearchId] = useState(null)
-  const [updatingSearchId, setUpdatingSearchId] = useState(null)
   const { feedback, notify, dismiss } = useFeedback()
 
   useEffect(() => {
@@ -59,26 +58,6 @@ export default function TenantDashboard() {
       notify(error.message, 'error')
     } finally {
       setDeletingSearchId(null)
-    }
-  }
-
-  async function toggleSearchAlerts(search) {
-    const notifyNewListings = !search.notify_new_listings
-    setUpdatingSearchId(search.id)
-    try {
-      const result = await updateSavedSearchNotifications(search.id, notifyNewListings)
-      setSearches((current) => current.map((item) => item.id === search.id
-        ? { ...item, ...result.search }
-        : item))
-      if (notifyNewListings && !result.emailDeliveryConfigured) {
-        notify('Email alert preference saved, but the server email service is not configured yet.', 'error')
-      } else {
-        notify(notifyNewListings ? 'Email alerts enabled for this search.' : 'Email alerts turned off.')
-      }
-    } catch (error) {
-      notify(error.message, 'error')
-    } finally {
-      setUpdatingSearchId(null)
     }
   }
 
@@ -195,15 +174,6 @@ export default function TenantDashboard() {
                       {search.bedrooms ? `${search.bedrooms}+ bedrooms` : 'Any bedrooms'}
                     </p>
                   </div>
-                  <label className="inline-flex shrink-0 items-center gap-2 text-xs font-medium text-ink-muted">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(search.notify_new_listings)}
-                      disabled={updatingSearchId === search.id}
-                      onChange={() => toggleSearchAlerts(search)}
-                    />
-                    {updatingSearchId === search.id ? 'Updating…' : 'Email alerts'}
-                  </label>
                   <button
                     type="button"
                     onClick={() => removeSearch(search.id)}

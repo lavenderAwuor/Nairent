@@ -1,6 +1,5 @@
 // Reads and updates users, listings, and reports for the admin dashboard.
 import { pool } from '../db/pool.js'
-import { queueListingAlerts } from './listingAlertService.js'
 
 export async function listAllListingsForAdmin(status) {
   const values = []
@@ -46,9 +45,6 @@ export async function updateListingModerationStatus(listingId, moderationStatus)
       await client.query('ROLLBACK')
       return null
     }
-    if (moderationStatus === 'approved') {
-      await queueListingAlerts(client, listingId)
-    }
     await client.query('COMMIT')
     return result.rows[0]
   } catch (error) {
@@ -69,7 +65,7 @@ export async function deleteListingByAdmin(listingId) {
 
 export async function listUsersForAdmin() {
   const result = await pool.query(
-    `SELECT u.id, u.full_name, u.email, u.phone, u.role, u.email_verified_at, u.created_at,
+    `SELECT u.id, u.full_name, u.email, u.phone, u.role, u.created_at,
             COUNT(DISTINCT l.id)::int AS listing_count,
             COUNT(DISTINCT a.id)::int AS appointment_count
      FROM users u
@@ -87,17 +83,12 @@ export async function updateUserRoleByAdmin(userId, role) {
     await client.query('BEGIN')
     await client.query('SELECT pg_advisory_xact_lock(7812, 1)')
     const current = await client.query(
-      'SELECT id, role, email_verified_at FROM users WHERE id = $1 FOR UPDATE',
+      'SELECT id, role FROM users WHERE id = $1 FOR UPDATE',
       [userId],
     )
     if (!current.rows[0]) {
       await client.query('ROLLBACK')
       return null
-    }
-    if (role === 'admin' && !current.rows[0].email_verified_at) {
-      const error = new Error('Confirm this user’s email before granting administrator access.')
-      error.statusCode = 400
-      throw error
     }
     if (current.rows[0].role === 'admin' && role !== 'admin') {
       await preventRemovingLastAdmin(client)

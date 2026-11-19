@@ -2,22 +2,7 @@
 import { app } from './app.js'
 import { env } from './config/env.js'
 import { pool } from './db/pool.js'
-import { startListingAlertWorker } from './services/listingAlertService.js'
-import { verifyEmailTransport } from './services/emailService.js'
 
-const emailConfigured = Boolean(env.SMTP_HOST && env.SMTP_FROM)
-if (!emailConfigured) {
-  console.warn('Email delivery is disabled. Set SMTP_HOST and SMTP_FROM in server/.env to send account and listing emails.')
-}
-const stopListingAlertWorker = emailConfigured ? startListingAlertWorker() : () => {}
-if (emailConfigured) {
-  void verifyEmailTransport().catch((error) => {
-    console.error('SMTP connection check failed:', {
-      code: error.code || error.name || 'unknown error',
-      message: error.message,
-    })
-  })
-}
 const server = app.listen(env.PORT, '0.0.0.0', () => {
   console.log(`Nairent API listening on port ${env.PORT}`)
 })
@@ -29,7 +14,6 @@ async function shutdown(signal) {
   console.log(`${signal} received, shutting down`)
   const timeout = setTimeout(() => process.exit(1), 10_000)
   timeout.unref()
-  stopListingAlertWorker()
   server.close(async (error) => {
     try {
       await pool.end()

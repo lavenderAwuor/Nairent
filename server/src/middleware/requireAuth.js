@@ -18,11 +18,11 @@ export async function requireAuth(request, response, next) {
       return response.status(401).json({ error: 'Invalid or expired authentication token' })
     }
     const result = await pool.query(
-      'SELECT id, role, email_verified_at FROM users WHERE id = $1',
+      'SELECT id, role FROM users WHERE id = $1',
       [claims.sub],
     )
     const user = result.rows[0]
-    if (!user || !user.email_verified_at) {
+    if (!user) {
       return response.status(401).json({ error: 'This account is no longer available for authentication' })
     }
     request.user = { ...claims, sub: user.id, role: user.role }

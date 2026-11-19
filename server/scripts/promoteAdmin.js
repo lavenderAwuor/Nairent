@@ -1,4 +1,4 @@
-// Promotes an existing verified account to the administrator role.
+// Promotes an existing account to the administrator role.
 import 'dotenv/config'
 import pg from 'pg'
 
@@ -18,13 +18,13 @@ try {
   const result = await pool.query(
     `UPDATE users
      SET role = 'admin', updated_at = NOW()
-     WHERE LOWER(email) = $1 AND email_verified_at IS NOT NULL
+     WHERE LOWER(email) = $1
      RETURNING email`,
     [email],
   )
 
   if (result.rowCount === 0) {
-    throw new Error(`No verified account found for ${email}. Register and confirm that account before promoting it.`)
+    throw new Error(`No account found for ${email}. Register that account before promoting it.`)
   }
 
   console.log(`Administrator access granted to ${result.rows[0].email}. Sign out and sign in again to refresh the account token.`)
