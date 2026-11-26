@@ -69,9 +69,17 @@ function InquiriesQueue({ inquiries }) {
         )}
         {inquiries.map((inquiry) => {
           const replyEmail = inquiry.guest_email || inquiry.tenant_email
+          const renterPhone = inquiry.guest_phone || inquiry.tenant_phone
+          const phoneDigits = renterPhone?.replace(/\D/g, '')
+          const whatsappNumber = phoneDigits?.startsWith('0')
+            ? `254${phoneDigits.slice(1)}`
+            : phoneDigits
           const replySubject = `Re: ${inquiry.title}`
           const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(replyEmail || '')}&su=${encodeURIComponent(replySubject)}`
           const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(replyEmail || '')}&subject=${encodeURIComponent(replySubject)}`
+          const whatsappUrl = whatsappNumber
+            ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Hi ${inquiry.guest_name || inquiry.tenant_name || 'there'}, I'm following up on your inquiry about ${inquiry.title}.`)}`
+            : null
 
           return (
             <article key={inquiry.id} className="rounded-lg border border-border p-4">
@@ -88,10 +96,17 @@ function InquiriesQueue({ inquiries }) {
                         <a href={outlookUrl} target="_blank" rel="noreferrer" className="text-brand hover:underline">Reply in Outlook</a>
                       </>
                     )}
-                    {(inquiry.guest_phone || inquiry.tenant_phone) && (
-                      <a href={`tel:${inquiry.guest_phone || inquiry.tenant_phone}`} className="flex items-center gap-1 text-brand hover:underline">
-                        <Phone size={13} /> {inquiry.guest_phone || inquiry.tenant_phone}
-                      </a>
+                    {renterPhone && (
+                      <>
+                        <a href={`tel:${renterPhone}`} className="flex items-center gap-1 text-brand hover:underline">
+                          <Phone size={13} /> {renterPhone}
+                        </a>
+                        {whatsappUrl && (
+                          <a href={whatsappUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-brand hover:underline">
+                            <MessageCircle size={13} /> WhatsApp
+                          </a>
+                        )}
+                      </>
                     )}
                   </div>
                   <p className="mt-2 text-xs font-medium text-ink-muted">{inquiry.title} · {inquiry.location_name}</p>
