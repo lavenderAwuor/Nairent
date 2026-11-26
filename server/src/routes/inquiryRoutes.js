@@ -6,6 +6,7 @@ import { requireAuth } from '../middleware/requireAuth.js'
 import { requireRole } from '../middleware/requireRole.js'
 import { createRateLimiter } from '../middleware/security.js'
 import { createInquiry, getInquiriesForLister, getInquiriesForTenant } from '../services/inquiryService.js'
+import { sendInquiryNotificationEmail } from '../services/emailService.js'
 
 const router = Router()
 
@@ -25,15 +26,27 @@ const inquiryLimiter = createRateLimiter({ windowMs: 60_000, max: 20, message: '
 router.post('/', optionalAuth, inquiryLimiter, async (request, response, next) => {
   try {
     const input = inquirySchema.parse(request.body)
-    const inquiry = await createInquiry({
+    const createdInquiry = await createInquiry({
       ...input,
       tenantId: request.user?.sub || null,
       guestName: input.guestName || request.user?.fullName || null,
       guestEmail: input.guestEmail || request.user?.email || null,
     })
 
-    if (!inquiry) {
+    if (!createdInquiry) {
       return response.status(404).json({ error: 'Listing not found or unavailable' })
+    }
+
+    const { lister_email, listing_title, location_name, ...inquiry } = createdInquiry
+    try {
+      await sendInquiryNotificationEmail({
+        ...inquiry,
+        lister_email,
+        listing_title,
+        location_name,
+      })
+    } catch (error) {
+      console.error('Could not send inquiry notification email:', error)
     }
 
     return response.status(201).json({ inquiry })

@@ -3,13 +3,20 @@ import { pool } from '../db/pool.js'
 
 export async function createInquiry({ listingId, tenantId = null, guestName, guestEmail, guestPhone, message }) {
   const result = await pool.query(
-    `INSERT INTO inquiries (listing_id, tenant_id, guest_name, guest_email, guest_phone, message)
-     SELECT $1, $2, $3, $4, $5, $6
-     WHERE EXISTS (
-       SELECT 1 FROM listings
-       WHERE id = $1 AND moderation_status = 'approved'
+    `WITH inserted AS (
+       INSERT INTO inquiries (listing_id, tenant_id, guest_name, guest_email, guest_phone, message)
+       SELECT $1, $2, $3, $4, $5, $6
+       WHERE EXISTS (
+         SELECT 1 FROM listings
+         WHERE id = $1 AND moderation_status = 'approved'
+       )
+       RETURNING id, listing_id, tenant_id, guest_name, guest_email, guest_phone, message, created_at
      )
-     RETURNING id, listing_id, tenant_id, guest_name, guest_email, guest_phone, message, created_at`,
+     SELECT inserted.*, l.title AS listing_title, loc.name AS location_name, u.email AS lister_email
+     FROM inserted
+     JOIN listings l ON l.id = inserted.listing_id
+     JOIN locations loc ON loc.id = l.location_id
+     JOIN users u ON u.id = l.owner_id`,
     [listingId, tenantId, guestName || null, guestEmail || null, guestPhone || null, message],
   )
   return result.rows[0] ?? null
