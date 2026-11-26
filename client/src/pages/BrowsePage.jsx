@@ -66,7 +66,7 @@ function InquiryDialog({ listing, onClose }) {
         </div>
         {state.success ? (
           <div className="mt-8 rounded-lg bg-brand-tint p-4 text-sm leading-relaxed text-brand">
-            Your inquiry was sent to the lister. They can reply directly to your email address.
+            Your inquiry was delivered to the lister. They will contact you shortly using your details.
           </div>
         ) : (
           <form onSubmit={submit} className="mt-7 flex flex-col gap-4">
@@ -468,8 +468,7 @@ export default function BrowsePage({ initialListingId = '' }) {
   const [appointmentListing, setAppointmentListing] = useState(null)
   const [reservationListing, setReservationListing] = useState(null)
   const [inquiryListing, setInquiryListing] = useState(null)
-  const [saveState, setSaveState] = useState({ loading: false, message: '', warning: '', error: '' })
-  const [notifyNewListings, setNotifyNewListings] = useState(false)
+  const [saveState, setSaveState] = useState({ loading: false, message: '', error: '' })
   const [sortBy, setSortBy] = useState('newest')
   // Builds the removable filter chips shown beside the current search results.
   const activeFilters = [
@@ -517,31 +516,26 @@ export default function BrowsePage({ initialListingId = '' }) {
     loadListings(nextFilters)
   }
 
-  async function saveCurrentSearch({ notify = notifyNewListings } = {}) {
+  async function saveCurrentSearch() {
     if (!getToken()) {
       window.location.hash = '#tenant-sign-up'
       return
     }
-    setSaveState({ loading: true, message: '', warning: '', error: '' })
+    setSaveState({ loading: true, message: '', error: '' })
     try {
-      const result = await createSavedSearch({
+      await createSavedSearch({
         location: filters.location || undefined,
         maxRent: filters.maxRent || undefined,
         bedrooms: filters.bedrooms || undefined,
         availability: filters.availability || undefined,
-        notifyNewListings: notify,
       })
-      setNotifyNewListings(notify)
       setSaveState({
         loading: false,
-        message: notify ? 'Search saved. We’ll email you when a matching home is listed.' : 'Search saved to your account.',
-        warning: notify && !result.emailDeliveryConfigured
-          ? 'Email delivery is not configured on this server yet. The alert is saved, but no email can be sent until SMTP is set up.'
-          : '',
+        message: 'Search saved to your account.',
         error: '',
       })
     } catch (requestError) {
-      setSaveState({ loading: false, message: '', warning: '', error: requestError.message })
+      setSaveState({ loading: false, message: '', error: requestError.message })
     }
   }
 
@@ -633,10 +627,6 @@ export default function BrowsePage({ initialListingId = '' }) {
                 <Heart size={17} /> {saveState.loading ? 'Saving…' : 'Save search'}
               </button>
             </div>
-            <label className="flex cursor-pointer items-start gap-2 rounded-lg bg-page p-3 text-xs leading-relaxed text-ink-muted">
-              <input type="checkbox" checked={notifyNewListings} onChange={(event) => setNotifyNewListings(event.target.checked)} className="mt-0.5 accent-brand" />
-              <span>Email me when a matching home is listed</span>
-            </label>
             <p className="text-[11px] leading-relaxed text-ink-muted">Viewing fees are set by listers and shown before you request a viewing.</p>
           </form>
             </aside>
@@ -674,7 +664,6 @@ export default function BrowsePage({ initialListingId = '' }) {
             </p>
           )}
 
-          {saveState.warning && <p className="text-sm text-amber-700" role="status">{saveState.warning}</p>}
           {loading && <p className="text-sm text-ink-muted">Loading available homes…</p>}
           {error && (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700" role="alert">

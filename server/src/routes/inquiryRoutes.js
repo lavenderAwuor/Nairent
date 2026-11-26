@@ -6,7 +6,7 @@ import { requireAuth } from '../middleware/requireAuth.js'
 import { requireRole } from '../middleware/requireRole.js'
 import { createRateLimiter } from '../middleware/security.js'
 import { createInquiry, getInquiriesForLister, getInquiriesForTenant } from '../services/inquiryService.js'
-import { sendInquiryNotificationEmail } from '../services/emailService.js'
+import { sendInquiryNotificationEmail } from '../services/inquiryNotificationService.js'
 
 const router = Router()
 

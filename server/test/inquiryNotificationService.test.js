@@ -1,9 +1,9 @@
-// Checks that listing inquiry notifications support direct email replies.
+// Checks that inquiry notifications can be replied to directly by renters.
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildInquiryNotificationEmail } from '../src/services/emailService.js'
+import { buildInquiryNotificationEmail } from '../src/services/inquiryNotificationService.js'
 
-test('inquiry notification directs replies to the renter', () => {
+test('inquiry notification sets the renter as reply-to', () => {
   const email = buildInquiryNotificationEmail({
     lister_email: 'lister@example.com',
     guest_name: 'Renter',
@@ -20,7 +20,7 @@ test('inquiry notification directs replies to the renter', () => {
   assert.match(email.html, /Reply to this email to respond directly to the renter\./)
 })
 
-test('inquiry notification omits reply-to when the renter email is unavailable', () => {
+test('inquiry notification omits reply-to without a renter email', () => {
   const email = buildInquiryNotificationEmail({
     lister_email: 'lister@example.com',
     guest_name: 'Renter',
@@ -29,6 +29,6 @@ test('inquiry notification omits reply-to when the renter email is unavailable',
     message: 'Is it still available?',
   })
 
-  assert.equal(Object.hasOwn(email, 'replyTo'), false)
+  assert.equal(email.replyTo, undefined)
   assert.match(email.text, /The renter did not provide an email address\./)
 })

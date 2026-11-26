@@ -67,32 +67,43 @@ function InquiriesQueue({ inquiries }) {
         {inquiries.length === 0 && (
           <p className="rounded-lg border border-dashed border-border p-4 text-sm text-ink-muted">No tenant inquiries yet.</p>
         )}
-        {inquiries.map((inquiry) => (
-          <article key={inquiry.id} className="rounded-lg border border-border p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-semibold">{inquiry.guest_name || inquiry.tenant_name || 'Prospective Renter'}</p>
-                <div className="flex flex-wrap gap-3 text-xs text-ink-muted mt-1">
-                  {(inquiry.guest_email || inquiry.tenant_email) && (
-                    <a href={`mailto:${inquiry.guest_email || inquiry.tenant_email}`} className="flex items-center gap-1 text-brand hover:underline">
-                      <Mail size={13} /> {inquiry.guest_email || inquiry.tenant_email}
-                    </a>
-                  )}
-                  {(inquiry.guest_phone || inquiry.tenant_phone) && (
-                    <a href={`tel:${inquiry.guest_phone || inquiry.tenant_phone}`} className="flex items-center gap-1 text-brand hover:underline">
-                      <Phone size={13} /> {inquiry.guest_phone || inquiry.tenant_phone}
-                    </a>
-                  )}
+        {inquiries.map((inquiry) => {
+          const replyEmail = inquiry.guest_email || inquiry.tenant_email
+          const replySubject = `Re: ${inquiry.title}`
+          const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(replyEmail || '')}&su=${encodeURIComponent(replySubject)}`
+          const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(replyEmail || '')}&subject=${encodeURIComponent(replySubject)}`
+
+          return (
+            <article key={inquiry.id} className="rounded-lg border border-border p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-semibold">{inquiry.guest_name || inquiry.tenant_name || 'Prospective Renter'}</p>
+                  <div className="flex flex-wrap gap-3 text-xs text-ink-muted mt-1">
+                    {(inquiry.guest_email || inquiry.tenant_email) && (
+                      <>
+                        <a href={`mailto:${replyEmail}`} className="flex items-center gap-1 text-brand hover:underline">
+                          <Mail size={13} /> {replyEmail}
+                        </a>
+                        <a href={gmailUrl} target="_blank" rel="noreferrer" className="text-brand hover:underline">Reply in Gmail</a>
+                        <a href={outlookUrl} target="_blank" rel="noreferrer" className="text-brand hover:underline">Reply in Outlook</a>
+                      </>
+                    )}
+                    {(inquiry.guest_phone || inquiry.tenant_phone) && (
+                      <a href={`tel:${inquiry.guest_phone || inquiry.tenant_phone}`} className="flex items-center gap-1 text-brand hover:underline">
+                        <Phone size={13} /> {inquiry.guest_phone || inquiry.tenant_phone}
+                      </a>
+                    )}
+                  </div>
+                  <p className="mt-2 text-xs font-medium text-ink-muted">{inquiry.title} · {inquiry.location_name}</p>
                 </div>
-                <p className="mt-2 text-xs font-medium text-ink-muted">{inquiry.title} · {inquiry.location_name}</p>
+                <span className="text-[10px] text-ink-muted">{new Date(inquiry.created_at).toLocaleDateString()}</span>
               </div>
-              <span className="text-[10px] text-ink-muted">{new Date(inquiry.created_at).toLocaleDateString()}</span>
-            </div>
-            <div className="mt-3 rounded-md bg-page p-3 text-sm text-ink">
-              <p className="italic">"{inquiry.message}"</p>
-            </div>
-          </article>
-        ))}
+              <div className="mt-3 rounded-md bg-page p-3 text-sm text-ink">
+                <p className="italic">"{inquiry.message}"</p>
+              </div>
+            </article>
+          )
+        })}
       </div>
     </section>
   )

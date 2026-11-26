@@ -11,6 +11,28 @@ const envSchema = z.object({
   SUPABASE_URL: z.string().url('SUPABASE_URL must be a valid URL'),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
   SUPABASE_STORAGE_BUCKET: z.string().min(1).default('listing-photos'),
+  SMTP_HOST: z.string().trim().min(1).optional(),
+  SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),
+  SMTP_SECURE: z.enum(['true', 'false']).default('false').transform((value) => value === 'true'),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASSWORD: z.string().optional(),
+  SMTP_FROM: z.string().email().optional(),
+}).superRefine((data, context) => {
+  if (Boolean(data.SMTP_HOST) !== Boolean(data.SMTP_FROM)) {
+    context.addIssue({
+      code: 'custom',
+      path: ['SMTP_FROM'],
+      message: 'SMTP_HOST and SMTP_FROM must be configured together',
+    })
+  }
+
+  if (Boolean(data.SMTP_USER) !== Boolean(data.SMTP_PASSWORD)) {
+    context.addIssue({
+      code: 'custom',
+      path: ['SMTP_USER'],
+      message: 'SMTP_USER and SMTP_PASSWORD must be configured together',
+    })
+  }
 })
 
 const parsed = envSchema.safeParse(process.env)
